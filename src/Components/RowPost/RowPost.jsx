@@ -1,26 +1,46 @@
 import React, { useEffect, useState} from 'react';
 import './RowPost.css';
 import axios from '../../axios';
-import { API_KEY } from '../../Credentials/Credentials';
-import { imageBaseURL } from '../../Credentials/Credentials';
+import { API_KEY, imageBaseURL } from '../../Credentials/Credentials';
+import Youtube from 'react-youtube'
 
 
-function RowPost() {
-  const [movies, setmovies] = useState([])
+function RowPost(props) {
+  const [movies, setmovies] = useState([]);
+  const [urlId, setUrlId] = useState('');
   useEffect(() => {
-    axios.get(`https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_networks=213`)
+    axios.get(props.webService)
     .then((response) => setmovies(response.data.results))
-  }, [])
+  }, []) 
+
+  function handlePosterClick(id) {
+    axios.get(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${API_KEY}`)
+    .then((response) => {
+      if(response.data.results[0]) {
+      console.log(urlId)
+      setUrlId(response.data.results[0])
+      }
+    })
+  }
+
+  const opts = {
+    height: '380',
+    width: '100%',
+    playerVars: {
+      autoplay: 0,
+    },
+  };
 
   return (
     <div className='row'>
-        <h2>Netflix Originals</h2>
+        <h2>{props.title}</h2>
         <div className="posters">
             
-            {movies.map((movie) => 
-            <img className="poster" src={`${imageBaseURL}${movie.backdrop_path}`}/>
+            {movies.map((movie, index) => 
+            <img key={index} onClick={() => handlePosterClick(movie.id)} className={props.class_name} src={`${imageBaseURL}${movie.backdrop_path}`}/>
             )}
         </div>
+        {urlId && <Youtube opts={opts} videoId={urlId.key}/>}
     </div>
   )
 }
